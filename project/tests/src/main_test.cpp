@@ -47,7 +47,7 @@ bool pass_signal(char sig, int pid){
 		}
 		memset(buf, 0, 127);
 		process.push_back(std::make_pair(ipd, state));
-    }	
+	}	
 
 	pclose(pipe);
 	std::string st = (sig == 'T') ? "stopped" : "resumed";
