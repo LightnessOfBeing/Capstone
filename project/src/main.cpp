@@ -3,26 +3,31 @@
 #include <sys/wait.h>
 #include <vector>
 #include <string>
+#include <cstring>
+#include <chrono>
+#include <thread>
 
 void pass_signal(int pid, int signal){
     FILE *pipe;
     char buf[128];
+	memset(buf, 0, 127);
     std::string result = "";
     pipe = popen((("pgrep -P ") + std::to_string(pid)).c_str(), "r");
 
     if(!pipe){
-        std::cout << "Could not open pipe for output.\n";
+        std::cout << "Could not open pipe for output." << std::endl;
         pclose(pipe);
         return;
     }
 
     std::vector<int> children;
-    while (fgets(buf, 128, pipe) != NULL)
+    while(fgets(buf, 128, pipe) != NULL){
         children.push_back(stoi(std::string(buf)));
+		memset(buf, 0, 127);
+	}
 
-    for(auto a : children)
-        if (!kill(a, 0))
-            kill(a, signal);
+    for(auto& a : children)
+		kill(a, signal);
     pclose(pipe);
 
     return;
@@ -34,7 +39,7 @@ int main(int argc, char **argv) {
 
     cpid = fork();
     if (cpid == -1) {
-        std:: cout << "fork\n";
+        std:: cout << "fork" << std::endl;
         return 1;
     }
 
@@ -46,20 +51,20 @@ int main(int argc, char **argv) {
         do {
             w = waitpid(cpid, &status, WUNTRACED | WCONTINUED);
             if (w == -1) {
-                std::cout << "waitpid\n";
+                std::cout << "waitpid" << std::endl;
                 break;
             }
 
             if (WIFEXITED(status)) {
-                std::cout << "exited\n";
+                std::cout << "exited" << std::endl;
                 break;
             }
             else if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP) {
-                std::cout << "stopped by signal\n";
+                std::cout << "stopped by signal" << std::endl;
                 pass_signal((int) cpid, SIGSTOP);
             }
             else if (WIFCONTINUED(status)) {
-                std::cout << "resumed by signal\n";
+                std::cout << "resumed by signal" << std::endl;
                 pass_signal((int) cpid, SIGCONT);
             }
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));

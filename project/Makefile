@@ -24,7 +24,15 @@ $(OBJDIR):
 
 main_test: $(OBJDIR) tests/src/main_test.cpp
 	g++ -O2 -Wall -std=c++11 tests/src/main_test.cpp -o main_test
-	
+
+val_check:
+	g++ -I ./include -g $(CXXFLAGS) src/main.cpp
+	valgrind --tool=memcheck --track-origins=yes --error-limit=no --leak-check=full --show-leak-kinds=all ./a.out roslaunch agitr test.launch 
+
+val_check_test:
+	g++ -I ./include -g $(CXXFLAGS) tests/src/main_test.cpp
+	valgrind --tool=memcheck --track-origins=yes --error-limit=no --leak-check=full --show-leak-kinds=all ./a.out 
+ 	
 clean_tests:
 	rm -rf $(OBJDIR)
 
